@@ -6,7 +6,9 @@ const Messages = ({ messages, name }) => {
     <div className={styles.messages}>
       {messages.map(({user, message}, i) => {
         const itsMe = user.name.trim().toLowerCase() === name.trim().toLowerCase()
-        const className = itsMe ? styles.me : styles.user
+        let className = styles.user;
+        if (itsMe) className = styles.me;
+        else if(user.name === 'Admin') className = styles.admin;
         return (
           <div key={i} className={`${styles.message} ${className}`}>
             <span className={styles.user}>

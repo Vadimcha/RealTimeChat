@@ -36,6 +36,10 @@
     padding-left: 10px;
 }
 
+.admin {
+    align-items: center;
+}
+
 .me {
     align-items: flex-end;
 }

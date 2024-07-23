@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {io} from 'socket.io-client'
-import {useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 
 import icon from '../images/emoji.svg'
 import styles from '../styles/Chat.module.css'
@@ -15,6 +15,8 @@ const Chat = () => {
   const [params, setParams] = useState({room: "", user: ""})
   const [message, setMessage] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [users, setUsers] = useState(0)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(search))
@@ -28,10 +30,24 @@ const Chat = () => {
     })
   }, []);
 
+  useEffect(() => {
+    socket.on('room', ({data: {users}}) => {
+      setUsers(users.length)
+    })
+  }, []);
+
+
   const leftRoom = () => {
+    socket.emit('leftRoom', { params })
+    navigate('/')
   }
   const handleChange = ({target: {value}}) => setMessage(value)
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault()
+
+    if(!message) return
+    socket.emit('sendMessage', { message, params })
+    setMessage('')
   }
   const handleEmojiClick = ({emoji}) => setMessage(`${message}${emoji}`)
 
@@ -40,7 +56,7 @@ const Chat = () => {
     <div className={styles.wrap}>
       <div className={styles.header}>
         <div className={styles.title}>{params.room}</div>
-        <div className={styles.users}>0 users in this room</div>
+        <div className={styles.users}>{users} users in this room</div>
         <button
           className={styles.left}
           onClick={leftRoom}
@@ -52,7 +68,7 @@ const Chat = () => {
         <Messages messages={state} name={params.name}/>
       </div>
 
-      <form className={styles.form}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.input}>
           <input
             type="text"
